@@ -30,8 +30,7 @@
   <!-- Spring Security -->
   <filter>
 	<filter-name>springSecurityFilterChain</filter-name>
-	<filter-class>org.springframework.web.filter.DelegatingFilterProxy
-	</filter-class>
+	<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
   </filter>
 
   <filter>
@@ -98,20 +97,39 @@
         <param-name>forceEncoding</param-name>
         <param-value>true</param-value>
     </init-param>
-</filter>
+  </filter>
 
-  
+  <filter>
+    <filter-name>corsFilter</filter-name>
+    <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
+      <init-param>
+        <param-name>allowedOrigins</param-name>
+        <param-value>*</param-value>
+      </init-param>
+      <init-param>
+        <param-name>allowedHeaders</param-name>
+        <param-value>X-Requested-With,Content-Type,Accept,Origin,Authorization</param-value>
+      </init-param>
+      <init-param>
+        <param-name>allowedMethods</param-name>
+        <param-value>PUT,POST,GET,OPTIONS,DELETE</param-value>
+      </init-param>
+  </filter>
+
   <!-- 
     Filter mappings.
    -->
   <filter-mapping>
     <filter-name>springSecurityFilterChain</filter-name>
-    <url-pattern>/rest/v1/*</url-pattern>
-<!--     To ensure we are within the Security Context if we Login via legacy Servlet -->
-    <url-pattern>/login.htm</url-pattern>
-    <url-pattern>*.shtm</url-pattern>
+    <url-pattern>/*</url-pattern>
   </filter-mapping>
-  
+
+  <filter-mapping>
+    <filter-name>corsFilter</filter-name>
+    <url-pattern>/rest/*</url-pattern>
+    <url-pattern>/modules/dashboards/web/js/**/*.html</url-pattern>
+  </filter-mapping>
+
   <filter-mapping>
     <filter-name>CharacterEncodingFilter</filter-name>
     <url-pattern>/rest/*</url-pattern>
@@ -248,7 +266,7 @@
     Servlet mappings.
    -->
 
-<servlet-mapping>
+  <servlet-mapping>
     <servlet-name>springDispatcher</servlet-name>
     <url-pattern>*.htm</url-pattern>
   </servlet-mapping>
