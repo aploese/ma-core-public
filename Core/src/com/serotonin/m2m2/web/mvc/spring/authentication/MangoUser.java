@@ -17,7 +17,7 @@ import com.serotonin.m2m2.vo.User;
  * @author Terry Packer
  *
  */
-public final class MangoUser implements UserDetails{
+public final class MangoUser implements UserDetails {
 
 	/**
 	 * 

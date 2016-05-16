@@ -45,8 +45,8 @@ import com.serotonin.m2m2.web.mvc.spring.components.JwtService;
  *
  */
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true)
-public class MangoSecurityConfiguration extends WebSecurityConfigurerAdapter {
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+public class MangoSecurityConfiguration {
 
     @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth) throws Exception {
@@ -77,9 +77,9 @@ public class MangoSecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
     
     // shouldn't be needed if we switch to formLogin() configuration
-    @Bean AuthenticationEntryPoint authenticationEntryPoint() {
+    /*@Bean AuthenticationEntryPoint authenticationEntryPoint() {
         return new LoginUrlAuthenticationEntryPoint("/login.htm");
-    }
+    }*/
     
     @Bean
     public CsrfHeaderFilter csrfHeaderFilter() {
@@ -103,9 +103,9 @@ public class MangoSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .logout().disable()
                 .rememberMe().disable()
                 .authorizeRequests()
-                    .antMatchers(HttpMethod.GET, "/rest/v1/login/**").permitAll()
+                    .antMatchers("/rest/v1/login/**").permitAll()
                     .antMatchers(HttpMethod.GET, "/rest/v1/translations/public/**").permitAll() //For public translations
-                    .antMatchers(HttpMethod.POST, "/rest/v1/jwt").permitAll()
+                    .antMatchers(HttpMethod.POST, "/rest/v1/jwt/login").permitAll()
                     .antMatchers(HttpMethod.OPTIONS).permitAll()
                     .anyRequest().authenticated()
                     .and()
@@ -113,8 +113,7 @@ public class MangoSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .addFilterAfter(csrfHeaderFilter, CsrfFilter.class)
                 .csrf()
                     .csrfTokenRepository(csrfTokenRepository)
-                    // TODO restrict further when more end points are added
-                    .ignoringAntMatchers("/rest/v1/jwt")
+                    .ignoringAntMatchers("/rest/v1/jwt/login")
                     .requireCsrfProtectionMatcher(new RequestMatcher() {
                         // extended version of org.springframework.security.web.csrf.CsrfFilter.DefaultRequiresCsrfMatcher
                         // does not apply CSRF protection if the user is authenticated via a JWT token
@@ -143,7 +142,7 @@ public class MangoSecurityConfiguration extends WebSecurityConfigurerAdapter {
     public static class DefaultSecurityConfiguration extends WebSecurityConfigurerAdapter {
         @Autowired CsrfTokenRepository csrfTokenRepository;
         @Autowired AccessDeniedHandler accessDeniedHandler;
-        @Autowired AuthenticationEntryPoint authenticationEntryPoint;
+        //@Autowired AuthenticationEntryPoint authenticationEntryPoint;
         @Autowired CsrfHeaderFilter csrfHeaderFilter;
 
         @Override
@@ -151,17 +150,15 @@ public class MangoSecurityConfiguration extends WebSecurityConfigurerAdapter {
             http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
-            .formLogin().disable()
-                //.loginPage("/login.htm")
-                //.loginProcessingUrl("/login.htm")
-                //.permitAll()
-                //.and()
-            .logout().disable()
-                //.invalidateHttpSession(true)
-                //.deleteCookies("XSRF-TOKEN","MANGO" + Common.envProps.getInt("web.port", 8080))
-                //.and()
-            .rememberMe().disable()
-                //.and()
+            .formLogin()
+                .permitAll()
+                .and()
+            .logout()
+                .invalidateHttpSession(true)
+                .deleteCookies("XSRF-TOKEN","MANGO" + Common.envProps.getInt("web.port", 8080))
+                .and()
+            .rememberMe()
+                .and()
             .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/login.htm").permitAll()
                 .antMatchers(HttpMethod.POST, "/login.htm").permitAll()
@@ -198,7 +195,7 @@ public class MangoSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .csrfTokenRepository(csrfTokenRepository)
                 .and()
             .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint)
+                //.authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler)
                 .and()
             //Customize the headers here

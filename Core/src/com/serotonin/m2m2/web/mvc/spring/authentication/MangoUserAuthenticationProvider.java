@@ -22,7 +22,7 @@ import com.serotonin.m2m2.vo.User;
  * @author Terry Packer
  *
  */
-public class MangoUserAuthenticationProvider implements AuthenticationProvider{
+public class MangoUserAuthenticationProvider implements AuthenticationProvider {
 
 	/* (non-Javadoc)
 	 * @see org.springframework.security.authentication.AuthenticationProvider#authenticate(org.springframework.security.core.Authentication)
@@ -36,22 +36,20 @@ public class MangoUserAuthenticationProvider implements AuthenticationProvider{
         }
 		
 		User user = UserDao.instance.getUser(authentication.getName());
-		if(user == null)
+		if (user == null)
 			throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
 		
-		if(user.isDisabled())
+		if (user.isDisabled())
 			throw new DisabledException(Common.translate("login.validation.accountDisabled"));
-		
-		//Do Login
-		user = Common.loginManager.performLogin(authentication.getName(), (String)authentication.getCredentials(), false);
-		
-		if(user == null)
-			throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
-		
-		Set<GrantedAuthority> authorities = MangoUserDetailsService.getGrantedAuthorities(user);
 
-		//Set User object as the Principle in our Token
-		return new UsernamePasswordAuthenticationToken(user, user.getPassword(), authorities);
+        // Validating the password against the database.
+        if (!Common.checkPassword((String) authentication.getCredentials(), user.getPassword())) {
+            throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
+        }
+
+        Set<GrantedAuthority> authorities = MangoUserDetailsService.getGrantedAuthorities(user);
+        // Set User object as the Principle in our Token
+        return new UsernamePasswordAuthenticationToken(user, user.getPassword(), authorities);
 	}
 
 	/* (non-Javadoc)
